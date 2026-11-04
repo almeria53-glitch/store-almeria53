@@ -10,7 +10,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/store_logo"
         android:label="Store Almería 53"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
