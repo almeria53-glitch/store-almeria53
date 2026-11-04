@@ -11,8 +11,8 @@ android {
         applicationId = "com.almeria53.store"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
 
     // Firma FIJA: siempre la misma llave, para que cada versión nueva

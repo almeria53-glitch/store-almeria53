@@ -1,6 +1,13 @@
 package com.almeria53.store.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.FilterChip
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,7 +64,15 @@ fun ListaScreen(
     var menuTema by remember { mutableStateOf(false) }
     val tick = ResumeBus.tick
 
-    val visibles = estado.apps.filter { it.nombre.contains(busqueda.trim(), ignoreCase = true) }
+    var filtro by remember { mutableStateOf("todas") }
+    val visibles = estado.apps.filter { app ->
+        val instalada = Instalador.versionInstalada(context, app.paquete)
+        app.nombre.contains(busqueda.trim(), ignoreCase = true) && when (filtro) {
+            "instaladas" -> instalada != null
+            "actualizaciones" -> instalada != null && instalada < app.codigo
+            else -> true
+        }
+    }
     val porActualizar = remember(tick, estado.apps) {
         estado.apps.count {
             val v = Instalador.versionInstalada(context, it.paquete)
@@ -130,21 +145,63 @@ fun ListaScreen(
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    if (porActualizar > 0) {
-                        item {
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(Brush.linearGradient(listOf(Color(0xFF01875F), Color(0xFF2BB98A))))
+                                .padding(20.dp)
+                        ) {
+                            Column {
                                 Text(
-                                    text = if (porActualizar == 1) "1 app tiene una actualización disponible"
-                                    else "$porActualizar apps tienen una actualización disponible",
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    fontWeight = FontWeight.Medium,
-                                    modifier = Modifier.padding(16.dp)
+                                    text = "Tus apps, siempre al día",
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = estado.apps.size.toString() +
+                                        (if (estado.apps.size == 1) " app disponible" else " apps disponibles"),
+                                    color = Color.White.copy(alpha = 0.9f)
                                 )
                             }
+                        }
+                    }
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .horizontalScroll(rememberScrollState())
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            FilterChip(
+                                selected = filtro == "todas",
+                                onClick = { filtro = "todas" },
+                                label = { Text("Todas") }
+                            )
+                            FilterChip(
+                                selected = filtro == "instaladas",
+                                onClick = { filtro = "instaladas" },
+                                label = { Text("Instaladas") }
+                            )
+                            FilterChip(
+                                selected = filtro == "actualizaciones",
+                                onClick = { filtro = "actualizaciones" },
+                                label = {
+                                    Text(if (porActualizar > 0) "Actualizaciones ($porActualizar)" else "Actualizaciones")
+                                }
+                            )
+                        }
+                    }
+                    if (visibles.isEmpty()) {
+                        item {
+                            Text(
+                                text = "No hay apps en esta lista.",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(24.dp)
+                            )
                         }
                     }
                     items(visibles, key = { it.paquete }) { app ->
