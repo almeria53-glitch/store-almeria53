@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.almeria53.store.data.AppEntry
 import com.almeria53.store.data.Catalogo
+import com.almeria53.store.data.Estadisticas
 import com.almeria53.store.data.Instalador
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -87,6 +88,8 @@ class TiendaEstado(private val context: Context, private val scope: CoroutineSco
             Instalador.pedirPermiso(context)
             return
         }
+        val esActualizacion = Instalador.versionInstalada(context, app.paquete) != null
+        scope.launch(Dispatchers.IO) { Estadisticas.contarInstalacion(app, esActualizacion) }
         progreso[app.paquete] = 0f
         scope.launch {
             try {
