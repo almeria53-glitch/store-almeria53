@@ -156,11 +156,12 @@ fun ListaScreen(
                         ) {
                             Column {
                                 Text(
-                                    text = "Tus apps, siempre al día",
+                                    text = estado.frase,
                                     color = Color.White,
-                                    style = MaterialTheme.typography.titleLarge,
+                                    style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
+                                Spacer(modifier = Modifier.padding(top = 6.dp))
                                 Text(
                                     text = estado.apps.size.toString() +
                                         (if (estado.apps.size == 1) " app disponible" else " apps disponibles"),

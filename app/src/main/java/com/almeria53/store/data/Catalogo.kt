@@ -25,6 +25,20 @@ object Catalogo {
     const val CATALOGO_URL =
         "https://raw.githubusercontent.com/almeria53-glitch/catalogo-almeria53/main/catalogo.json"
 
+    /** Frase por defecto del encabezado, por si el catálogo todavía no trae una. */
+    const val FRASE_POR_DEFECTO =
+        "Todas las apps son nuevas y se irán actualizando con nuevas funcionalidades " +
+            "y/o mejoras que entre todos hagamos."
+
+    /** La frase del encabezado, escrita en catalogo.json (campo "frase"). */
+    fun parsearFrase(texto: String): String {
+        return try {
+            JSONObject(texto).optString("frase").trim().ifBlank { FRASE_POR_DEFECTO }
+        } catch (e: Exception) {
+            FRASE_POR_DEFECTO
+        }
+    }
+
     fun parsear(texto: String): List<AppEntry> {
         val lista = JSONObject(texto).optJSONArray("apps") ?: return emptyList()
         val resultado = ArrayList<AppEntry>()

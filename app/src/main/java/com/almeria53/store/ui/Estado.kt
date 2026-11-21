@@ -26,6 +26,8 @@ class TiendaEstado(private val context: Context, private val scope: CoroutineSco
 
     var apps by mutableStateOf<List<AppEntry>>(emptyList())
         private set
+    var frase by mutableStateOf(Catalogo.FRASE_POR_DEFECTO)
+        private set
     var cargando by mutableStateOf(false)
         private set
     var error by mutableStateOf<String?>(null)
@@ -40,7 +42,11 @@ class TiendaEstado(private val context: Context, private val scope: CoroutineSco
     init {
         // Primero lo último que se vio (así abre al instante y sin internet), luego se actualiza.
         try {
-            if (archivoCache.exists()) apps = Catalogo.parsear(archivoCache.readText())
+            if (archivoCache.exists()) {
+                val guardado = archivoCache.readText()
+                apps = Catalogo.parsear(guardado)
+                frase = Catalogo.parsearFrase(guardado)
+            }
         } catch (e: Exception) {
         }
         refrescar()
@@ -55,6 +61,7 @@ class TiendaEstado(private val context: Context, private val scope: CoroutineSco
                 val texto = withContext(Dispatchers.IO) { Catalogo.descargarTexto() }
                 val nuevas = Catalogo.parsear(texto)
                 apps = nuevas
+                frase = Catalogo.parsearFrase(texto)
                 withContext(Dispatchers.IO) { archivoCache.writeText(texto) }
             } catch (e: Exception) {
                 if (apps.isEmpty()) {
