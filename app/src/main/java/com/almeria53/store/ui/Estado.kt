@@ -19,6 +19,9 @@ import java.io.File
 /** Sube cada vez que se vuelve a la tienda, para refrescar "Instalar / Actualizar / Abrir". */
 object ResumeBus {
     var tick by mutableIntStateOf(0)
+
+    /** Se pone a true cuando se abre la tienda desde la notificación de actualizaciones. */
+    var abrirActualizaciones = false
 }
 
 /** Todo lo que sabe la tienda: la lista de apps, las descargas en curso y los avisos. */
@@ -33,6 +36,12 @@ class TiendaEstado(private val context: Context, private val scope: CoroutineSco
     var error by mutableStateOf<String?>(null)
         private set
     var aviso by mutableStateOf<String?>(null)
+
+    /** Si hay una versión más nueva de la propia tienda, aquí están sus datos. */
+    var tiendaNueva by mutableStateOf<Catalogo.VersionTienda?>(null)
+        private set
+    var progresoTienda by mutableStateOf<Float?>(null)
+        private set
 
     /** Paquete -> avance de descarga (0 a 1). */
     val progreso = mutableStateMapOf<String, Float>()
@@ -54,6 +63,7 @@ class TiendaEstado(private val context: Context, private val scope: CoroutineSco
 
     fun refrescar() {
         if (cargando) return
+        comprobarTienda()
         scope.launch {
             cargando = true
             error = null
@@ -71,6 +81,37 @@ class TiendaEstado(private val context: Context, private val scope: CoroutineSco
                 }
             }
             cargando = false
+        }
+    }
+
+    fun comprobarTienda() {
+        scope.launch {
+            val v = withContext(Dispatchers.IO) { Catalogo.leerVersionTienda() }
+            val propia = Instalador.versionInstalada(context, context.packageName) ?: 0L
+            tiendaNueva = if (v != null && v.codigo > propia) v else null
+        }
+    }
+
+    fun actualizarTienda() {
+        val v = tiendaNueva ?: return
+        if (progresoTienda != null) return
+        if (!Instalador.puedeInstalar(context)) {
+            aviso = "Activa \"Permitir de esta fuente\" y vuelve a pulsar Actualizar tienda."
+            Instalador.pedirPermiso(context)
+            return
+        }
+        progresoTienda = 0f
+        scope.launch {
+            try {
+                val archivo = withContext(Dispatchers.IO) {
+                    Instalador.descargarUrl(context, v.apk, "tienda") { p -> progresoTienda = p }
+                }
+                progresoTienda = null
+                Instalador.instalar(context, archivo)
+            } catch (e: Exception) {
+                progresoTienda = null
+                aviso = "No se pudo descargar la nueva versión de la tienda."
+            }
         }
     }
 

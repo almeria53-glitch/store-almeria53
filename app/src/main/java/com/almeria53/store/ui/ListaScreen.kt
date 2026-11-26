@@ -65,7 +65,11 @@ fun ListaScreen(
     var menuTema by remember { mutableStateOf(false) }
     val tick = ResumeBus.tick
 
-    var filtro by remember { mutableStateOf("todas") }
+    var filtro by remember {
+        val inicial = if (ResumeBus.abrirActualizaciones) "actualizaciones" else "todas"
+        ResumeBus.abrirActualizaciones = false
+        mutableStateOf(inicial)
+    }
     val visibles = estado.apps.filter { app ->
         val instalada = Instalador.versionInstalada(context, app.paquete)
         app.nombre.contains(busqueda.trim(), ignoreCase = true) && when (filtro) {
@@ -146,6 +150,37 @@ fun ListaScreen(
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    val nueva = estado.tiendaNueva
+                    if (nueva != null) {
+                        item {
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE082)),
+                                shape = RoundedCornerShape(20.dp),
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = "Hay una versión nueva de la tienda" +
+                                            (if (nueva.version.isNotBlank()) " (v" + nueva.version + ")" else ""),
+                                        color = Color(0xFF3E2723),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(modifier = Modifier.padding(top = 8.dp))
+                                    val avance = estado.progresoTienda
+                                    if (avance != null) {
+                                        LinearProgressIndicator(
+                                            progress = { avance },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    } else {
+                                        Button(onClick = { estado.actualizarTienda() }, shape = RoundedCornerShape(50)) {
+                                            Text("Actualizar tienda")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     item {
                         Box(
                             modifier = Modifier

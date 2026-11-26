@@ -44,6 +44,36 @@ object Catalogo {
         }
     }
 
+    /** Dónde está el archivo que dice cuál es la última versión de la propia tienda. */
+    const val TIENDA_VERSION_URL =
+        "https://raw.githubusercontent.com/almeria53-glitch/catalogo-almeria53/main/tienda/version.json"
+
+    class VersionTienda(val codigo: Long, val version: String, val apk: String)
+
+    /** Mira si hay datos de una versión de la tienda. Devuelve null si no hay o no se puede leer. */
+    fun leerVersionTienda(): VersionTienda? {
+        return try {
+            val url = URL(TIENDA_VERSION_URL + "?t=" + System.currentTimeMillis())
+            val c = url.openConnection() as HttpURLConnection
+            c.connectTimeout = 15000
+            c.readTimeout = 15000
+            c.useCaches = false
+            try {
+                if (c.responseCode !in 200..299) {
+                    null
+                } else {
+                    val o = JSONObject(c.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() })
+                    val apk = o.optString("apk")
+                    if (apk.isBlank()) null else VersionTienda(o.optLong("codigo", 0L), o.optString("version"), apk)
+                }
+            } finally {
+                c.disconnect()
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     fun parsear(texto: String): List<AppEntry> {
         val lista = JSONObject(texto).optJSONArray("apps") ?: return emptyList()
         val resultado = ArrayList<AppEntry>()

@@ -46,13 +46,17 @@ object Instalador {
     }
 
     /** Descarga el APK a la carpeta temporal y avisa del avance (0 a 1). */
-    fun descargar(context: Context, app: AppEntry, alAvanzar: (Float) -> Unit): File {
+    fun descargar(context: Context, app: AppEntry, alAvanzar: (Float) -> Unit): File =
+        descargarUrl(context, app.apk, app.paquete, alAvanzar)
+
+    /** Descarga cualquier APK de una dirección, con el nombre de archivo dado. */
+    fun descargarUrl(context: Context, url: String, nombre: String, alAvanzar: (Float) -> Unit): File {
         val carpeta = File(context.cacheDir, "apks")
         carpeta.mkdirs()
-        val destino = File(carpeta, app.paquete + ".apk")
-        val parcial = File(carpeta, app.paquete + ".part")
+        val destino = File(carpeta, nombre + ".apk")
+        val parcial = File(carpeta, nombre + ".part")
 
-        val c = URL(app.apk).openConnection() as HttpURLConnection
+        val c = URL(url).openConnection() as HttpURLConnection
         c.connectTimeout = 20000
         c.readTimeout = 30000
         try {
