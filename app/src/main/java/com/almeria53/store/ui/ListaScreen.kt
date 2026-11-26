@@ -50,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.almeria53.store.data.AppEntry
+import com.almeria53.store.data.Catalogo
 import com.almeria53.store.data.Instalador
 
 @Composable
@@ -151,12 +152,12 @@ fun ListaScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                                 .clip(RoundedCornerShape(20.dp))
-                                .background(Brush.linearGradient(listOf(Color(0xFF01875F), Color(0xFF2BB98A))))
+                                .background(Color(0xFFFF1A1A))
                                 .padding(20.dp)
                         ) {
                             Column {
                                 Text(
-                                    text = estado.frase,
+                                    text = Catalogo.AVISO,
                                     color = Color.White,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold

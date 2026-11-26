@@ -30,6 +30,11 @@ object Catalogo {
         "Todas las apps son nuevas y se irán actualizando con nuevas funcionalidades " +
             "y/o mejoras que entre todos hagamos."
 
+    /** Aviso fijo del encabezado (rojo, sin parpadeo). No depende del catálogo. */
+    const val AVISO =
+        "Las tarifas son orientativas y pueden contener errores. " +
+            "El precio final es el que marca el taxímetro."
+
     /** La frase del encabezado, escrita en catalogo.json (campo "frase"). */
     fun parsearFrase(texto: String): String {
         return try {
